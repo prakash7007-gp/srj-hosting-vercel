@@ -199,28 +199,34 @@ export default function AddPatient() {
                       <th className="p-3 text-center">Status</th>
                     </tr>
                   </thead>
-
                   <tbody>
-                    {patients.map((p) => (
+                    {patients.map((p: any) => (
                       <tr key={p.id} className="hover:bg-gray-50 border-b transition">
                         <td className="p-3 font-semibold capitalize text-gray-800">{p.name}</td>
                         <td className="p-3 text-gray-700">{p.phone}</td>
                         <td className="p-3 text-gray-700">{p.gender}</td>
                         <td className="p-3 text-gray-700">{p.age}</td>
-                        <td className="p-3 text-amber-600">{p.admissionDate ? p.admissionDate.slice(0, 10) : "-"}</td>
-                        <td className="p-3 text-red-600">{p.nextFollowup ? p.nextFollowup.slice(0, 10) : "Not Scheduled"}</td>
+                        <td className="p-3 text-amber-600">
+                          {p.admissionDate ? p.admissionDate.slice(0, 10) : "-"}
+                        </td>
+                        <td className="p-3 text-red-600">
+                          {p.nextFollowup ? p.nextFollowup.slice(0, 10) : "Not Scheduled"}
+                        </td>
 
                         <td className="p-3 text-center">
-                          <span className={`px-3 py-1 text-xs rounded-full ${p.status === "Active"
-                            ? "bg-green-100 text-green-700 border border-green-400"
-                            : "bg-gray-200 text-gray-600"
-                            }`}>
+                          <span
+                            className={`px-3 py-1 text-xs rounded-full ${p.status === "Active"
+                                ? "bg-green-100 text-green-700 border border-green-400"
+                                : "bg-gray-200 text-gray-600"
+                              }`}
+                          >
                             {p.status}
                           </span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
+
 
                 </table>
               </div>

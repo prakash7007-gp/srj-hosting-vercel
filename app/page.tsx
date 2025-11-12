@@ -58,26 +58,41 @@ export default function DashboardPage() {
     p.name?.toLowerCase().includes(search.toLowerCase()) || p.phone?.includes(search)
   );
 
-  const updateFollowup = async (pid) => {
+  const updateFollowup = async (pid: number) => {
     const input = prompt("Enter New Follow-Up Date (YYYY-MM-DD)");
     if (!input) return;
 
+    // ✅ Validate input format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input)) {
       alert("Invalid format. Use YYYY-MM-DD");
       return;
     }
 
-    const res = await fetch(`/api/patients/${id}/followup`, {
+    // ✅ Convert to ISO format
+    const newDate = new Date(input);
+
+    if (isNaN(newDate.getTime())) {
+      alert("Invalid date entered.");
+      return;
+    }
+
+    // ✅ Send API request
+    const res = await fetch(`/api/patients/${pid}/followup`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nextFollowup: d.toISOString() }),
+      body: JSON.stringify({ nextFollowup: newDate.toISOString() }),
     });
 
+    // ✅ Handle response
+    if (!res.ok) {
+      alert("Error updating follow-up date");
+      return;
+    }
 
-    if (!res.ok) return alert("Error updating");
-
+    alert("Follow-up date updated successfully!");
     window.dispatchEvent(new Event("patientsUpdated"));
   };
+
 
 
 
