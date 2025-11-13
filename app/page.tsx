@@ -116,7 +116,7 @@ export default function DashboardPage() {
         <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">Patient Records</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Patient Recordssss</h2>
               <p className="text-sm text-gray-500 mt-1">Manage and track patient information</p>
             </div>
 
