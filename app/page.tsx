@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { UserPlus, Users, HeartPulse, UserCheck } from "lucide-react";
+import { UserPlus, Users, HeartPulse, UserCheck, Edit, Trash } from "lucide-react";
 
 function StatCard({ label, value, icon: Icon }: any) {
   return (
@@ -21,11 +21,11 @@ function StatCard({ label, value, icon: Icon }: any) {
 export default function DashboardPage() {
   const [patients, setPatients] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [editingPatient, setEditingPatient] = useState<any | null>(null);
 
-  // fetch patients (no cache)
   const fetchPatients = async () => {
     try {
-      const res = await fetch("/api/patients", { cache: "no-store" });
+      const res = await fetch("https://srj-hosting-vercel.onrender.com/api/patients", { cache: "no-store" });
       const data = await res.json();
       setPatients(data);
     } catch (err) {
@@ -35,14 +35,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchPatients();
-
-    // re-fetch when another page dispatches update event
     const onPatientsUpdated = () => fetchPatients();
     const onFocus = () => fetchPatients();
-
     window.addEventListener("patientsUpdated", onPatientsUpdated as EventListener);
     window.addEventListener("focus", onFocus);
-
     return () => {
       window.removeEventListener("patientsUpdated", onPatientsUpdated as EventListener);
       window.removeEventListener("focus", onFocus);
@@ -53,7 +49,6 @@ export default function DashboardPage() {
   const active = patients.filter((p) => p.status === "Active").length;
   const discharged = patients.filter((p) => p.status === "Discharged").length;
 
-  // Filter
   const filteredPatients = patients.filter((p) =>
     p.name?.toLowerCase().includes(search.toLowerCase()) || p.phone?.includes(search)
   );
@@ -61,40 +56,53 @@ export default function DashboardPage() {
   const updateFollowup = async (pid: number) => {
     const input = prompt("Enter New Follow-Up Date (YYYY-MM-DD)");
     if (!input) return;
-
-    // ✅ Validate input format
     if (!/^\d{4}-\d{2}-\d{2}$/.test(input)) {
       alert("Invalid format. Use YYYY-MM-DD");
       return;
     }
-
-    // ✅ Convert to ISO format
     const newDate = new Date(input);
-
     if (isNaN(newDate.getTime())) {
       alert("Invalid date entered.");
       return;
     }
-
-    // ✅ Send API request
-    const res = await fetch(`/api/patients/${pid}/followup`, {
+    const res = await fetch(`https://srj-hosting-vercel.onrender.com/api/patients/${pid}/followup`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nextFollowup: newDate.toISOString() }),
     });
-
-    // ✅ Handle response
     if (!res.ok) {
       alert("Error updating follow-up date");
       return;
     }
-
     alert("Follow-up date updated successfully!");
     window.dispatchEvent(new Event("patientsUpdated"));
   };
 
+  // 🧠 Edit Patient Save
+  const saveEdit = async () => {
+    if (!editingPatient) return;
+    const res = await fetch(`https://srj-hosting-vercel.onrender.com/api/patients/${editingPatient.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(editingPatient),
+    });
+    if (res.ok) {
+      alert("Patient updated successfully!");
+      setEditingPatient(null);
+      fetchPatients();
+    } else {
+      alert("Failed to update patient");
+    }
+  };
 
-
+  // 🧠 Delete Patient
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this patient?")) return;
+    const res = await fetch(`https://srj-hosting-vercel.onrender.com/api/patients/${id}`, { method: "DELETE" });
+    if (!res.ok) return alert("Failed to delete patient");
+    alert("Patient deleted successfully!");
+    fetchPatients();
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -139,6 +147,7 @@ export default function DashboardPage() {
                     <th className="p-4 text-left font-bold">Admission</th>
                     <th className="p-4 text-left font-bold">Next Follow-up</th>
                     <th className="p-4 text-center font-bold">Status</th>
+                    <th className="p-4 text-center font-bold">Actions</th>
                   </tr>
                 </thead>
 
@@ -153,20 +162,49 @@ export default function DashboardPage() {
 
                       <td className="p-4 flex items-center gap-2">
                         {p.nextFollowup ? (
-                          <span className="text-blue-600 font-medium">{String(p.nextFollowup).slice(0, 10)}</span>
+                          <span className="text-blue-600 font-medium">
+                            {String(p.nextFollowup).slice(0, 10)}
+                          </span>
                         ) : (
                           <span className="text-gray-400">Not Scheduled</span>
                         )}
 
-                        <button onClick={() => updateFollowup(p.id)} className="px-2 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded">
+                        <button
+                          onClick={() => updateFollowup(p.id)}
+                          className="px-2 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded"
+                        >
                           Edit
                         </button>
                       </td>
 
                       <td className="p-4 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${p.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${p.status === "Active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                            }`}
+                        >
                           {p.status}
                         </span>
+                      </td>
+
+                      {/* ✅ Edit/Delete Buttons Added */}
+                      <td className="p-4 flex items-center justify-center gap-3">
+                        <button
+                          onClick={() => setEditingPatient(p)}
+                          className="text-cyan-600 hover:text-cyan-800"
+                          title="Edit"
+                        >
+                          <Edit size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Delete"
+                        >
+                          <Trash size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -176,6 +214,61 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ✅ Edit Modal */}
+      {editingPatient && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
+            <h2 className="text-lg font-bold mb-4">Edit Patient</h2>
+            <input
+              type="text"
+              value={editingPatient.name}
+              onChange={(e) => setEditingPatient({ ...editingPatient, name: e.target.value })}
+              placeholder="Name"
+              className="w-full border px-3 py-2 rounded mb-2"
+            />
+            <input
+              type="text"
+              value={editingPatient.phone}
+              onChange={(e) => setEditingPatient({ ...editingPatient, phone: e.target.value })}
+              placeholder="Phone"
+              className="w-full border px-3 py-2 rounded mb-2"
+            />
+            <input
+              type="number"
+              value={editingPatient.age}
+              onChange={(e) =>
+                setEditingPatient({ ...editingPatient, age: parseInt(e.target.value) })
+              }
+              placeholder="Age"
+              className="w-full border px-3 py-2 rounded mb-2"
+            />
+            <select
+              value={editingPatient.gender}
+              onChange={(e) => setEditingPatient({ ...editingPatient, gender: e.target.value })}
+              className="w-full border px-3 py-2 rounded mb-2"
+            >
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setEditingPatient(null)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

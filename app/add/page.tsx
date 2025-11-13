@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 
 export default function AddPatient() {
   const [form, setForm] = useState({
@@ -16,16 +16,36 @@ export default function AddPatient() {
     nextFollowup: "",
   });
 
-  const [patients, setPatients] = useState([]);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const router = useRouter();
 
+  // Close dropdown when clicking outside
   useEffect(() => {
-    fetch("/api/patients")
-      .then((res) => res.json())
-      .then((data) => setPatients(data));
+    const handleClickOutside = () => setOpenMenuId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // Fetch all patients
+  const fetchPatients = async () => {
+    const res = await fetch("https://srj-hosting-vercel.onrender.com/api/patients");
+    const data = await res.json();
+    setPatients(data);
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  // Add new patient
   const handleSubmit = async () => {
-    await fetch("/api/patients", {
+    if (!form.name || !form.phone) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    await fetch("https://srj-hosting-vercel.onrender.com/api/patients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -37,25 +57,54 @@ export default function AddPatient() {
       }),
     });
 
-    fetch("/api/patients")
-      .then((res) => res.json())
-      .then((data) => setPatients(data));
+    await fetchPatients();
 
-    setForm({ name: "", phone: "", age: "", gender: "", admissionDate: "", address: "", treatmentPurpose: "", fees: "", nextFollowup: "" });
+    setForm({
+      name: "",
+      phone: "",
+      age: "",
+      gender: "",
+      admissionDate: "",
+      address: "",
+      treatmentPurpose: "",
+      fees: "",
+      nextFollowup: "",
+    });
+  };
+
+  // View details (redirect to patient details page)
+  const handleView = (id: number) => {
+    router.push(`/patients/${id}`);
+  };
+
+  // Edit patient (redirect to edit page)
+  const handleEdit = (id: number) => {
+    router.push(`/patients/edit/${id}`);
+  };
+
+  // Delete patient
+  const handleDelete = async (id: number) => {
+    const confirmDelete = confirm("Are you sure you want to delete this patient?");
+    if (!confirmDelete) return;
+
+    const res = await fetch(`/api/patients/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      alert("Patient deleted successfully!");
+      setPatients((prev) => prev.filter((p) => p.id !== id));
+    } else {
+      alert("Failed to delete patient.");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-
+      <div className="max-w-5xl mx-auto">
         {/* Form Section */}
         <div className="bg-white shadow-2xl rounded-2xl p-10 border border-gray-200 mb-10">
-
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-extrabold text-cyan-700 tracking-wide">
               Add Patient Details
             </h1>
-
             <Link
               href="/"
               className="flex items-center gap-2 bg-red-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-md"
@@ -64,104 +113,29 @@ export default function AddPatient() {
             </Link>
           </div>
 
+          {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700 mb-1">Patient Name</label>
-              <input
-                className="p-3 border border-gray-300  rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition shadow-2xl"
-                value={form.name}
-                placeholder="Enter name"
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700 mb-1">Phone Number</label>
-              <input
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.phone}
-                placeholder="Enter phone number"
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700 mb-1">Age</label>
-              <input
-                type="number"
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.age}
-                placeholder="Enter age"
-                onChange={(e) => setForm({ ...form, age: e.target.value })}
-              />
-            </div>
-
+            <FormInput label="Patient Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <FormInput label="Phone Number" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <FormInput type="number" label="Age" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} />
             <div className="flex flex-col">
               <label className="font-semibold text-gray-700 mb-1">Gender</label>
               <select
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
+                className="p-3 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none"
                 value={form.gender}
                 onChange={(e) => setForm({ ...form, gender: e.target.value })}
               >
                 <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
               </select>
             </div>
-
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700 mb-1">Admission Date</label>
-              <input
-                type="date"
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.admissionDate}
-                onChange={(e) => setForm({ ...form, admissionDate: e.target.value })}
-              />
-            </div>
-
-            <div className="flex flex-col md:col-span-2">
-              <label className="font-semibold text-gray-700 mb-1">Address</label>
-              <input
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.address}
-                placeholder="Enter address"
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-              />
-            </div>
-
-            <div className="flex flex-col md:col-span-2">
-              <label className="font-semibold text-gray-700 mb-1">Treatment Purpose</label>
-              <input
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.treatmentPurpose}
-                placeholder="Enter treatment details"
-                onChange={(e) => setForm({ ...form, treatmentPurpose: e.target.value })}
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700 mb-1">Fees (Rs)</label>
-              <input
-                type="number"
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.fees}
-                placeholder="Enter fees amount"
-                onChange={(e) => setForm({ ...form, fees: e.target.value })}
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700 mb-1">Next Follow-up Date</label>
-              <input
-                type="date"
-                className="p-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
-                value={form.nextFollowup}
-                onChange={(e) => setForm({ ...form, nextFollowup: e.target.value })}
-              />
-            </div>
-
+            <FormInput type="date" label="Admission Date" value={form.admissionDate} onChange={(e) => setForm({ ...form, admissionDate: e.target.value })} />
+            <FormInput label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <FormInput label="Treatment Purpose" value={form.treatmentPurpose} onChange={(e) => setForm({ ...form, treatmentPurpose: e.target.value })} />
+            <FormInput type="number" label="Fees (₹)" value={form.fees} onChange={(e) => setForm({ ...form, fees: e.target.value })} />
+            <FormInput type="date" label="Next Follow-up" value={form.nextFollowup} onChange={(e) => setForm({ ...form, nextFollowup: e.target.value })} />
           </div>
 
           <button
@@ -173,69 +147,84 @@ export default function AddPatient() {
         </div>
 
         {/* Patient List */}
-        {/* Patient List Section */}
-        <div className="bg-white border border-gray-300 shadow-xl rounded-xl p-6 mt-12 ">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-cyan-700">
-              Patient Records
-            </h2>
-          </div>
-
+        <div className="bg-white border border-gray-300 shadow-xl rounded-xl p-6 mt-12">
+          <h2 className="text-2xl font-bold text-cyan-700 mb-4">Patient Records</h2>
           {patients.length === 0 ? (
             <p className="text-center text-gray-500 py-6">No patient records found.</p>
           ) : (
             <div className="overflow-x-auto border rounded-lg">
-              <div className="max-h-96 overflow-y-auto custom-scrollbar">
+              <table className="w-full border-collapse text-sm">
+                <thead className="sticky top-0 bg-cyan-50 text-cyan-800 text-sm font-semibold border-b">
+                  <tr>
+                    <th className="p-3 text-left">Name</th>
+                    <th className="p-3 text-left">Phone</th>
+                    <th className="p-3 text-left">Gender</th>
+                    <th className="p-3 text-left">Age</th>
+                    <th className="p-3 text-left">Admission</th>
+                    <th className="p-3 text-left">Next Follow-Up</th>
+                    <th className="p-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {patients.map((p) => (
+                    <tr key={p.id} className="hover:bg-gray-50 border-b transition">
+                      <td className="p-3 font-semibold capitalize text-gray-800">{p.name}</td>
+                      <td className="p-3 text-gray-700">{p.phone}</td>
+                      <td className="p-3 text-gray-700">{p.gender}</td>
+                      <td className="p-3 text-gray-700">{p.age}</td>
+                      <td className="p-3 text-amber-600">{p.admissionDate?.slice(0, 10) || "-"}</td>
+                      <td className="p-3 text-red-600">{p.nextFollowup?.slice(0, 10) || "Not Scheduled"}</td>
+                      <td className="p-3 text-center relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(openMenuId === p.id ? null : p.id);
+                          }}
+                          className="px-2 py-1 rounded hover:bg-gray-100 text-gray-600 font-bold"
+                        >
+                          ⋮
+                        </button>
 
-                <table className="w-full border-collapse text-sm">
-                  <thead className="sticky top-0 bg-cyan-50 text-cyan-800 text-sm font-semibold border-b">
-                    <tr>
-                      <th className="p-3 text-left">Name</th>
-                      <th className="p-3 text-left">Phone</th>
-                      <th className="p-3 text-left">Gender</th>
-                      <th className="p-3 text-left">Age</th>
-                      <th className="p-3 text-left">Admission</th>
-                      <th className="p-3 text-left">Next Follow-Up</th>
-                      <th className="p-3 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {patients.map((p: any) => (
-                      <tr key={p.id} className="hover:bg-gray-50 border-b transition">
-                        <td className="p-3 font-semibold capitalize text-gray-800">{p.name}</td>
-                        <td className="p-3 text-gray-700">{p.phone}</td>
-                        <td className="p-3 text-gray-700">{p.gender}</td>
-                        <td className="p-3 text-gray-700">{p.age}</td>
-                        <td className="p-3 text-amber-600">
-                          {p.admissionDate ? p.admissionDate.slice(0, 10) : "-"}
-                        </td>
-                        <td className="p-3 text-red-600">
-                          {p.nextFollowup ? p.nextFollowup.slice(0, 10) : "Not Scheduled"}
-                        </td>
-
-                        <td className="p-3 text-center">
-                          <span
-                            className={`px-3 py-1 text-xs rounded-full ${p.status === "Active"
-                                ? "bg-green-100 text-green-700 border border-green-400"
-                                : "bg-gray-200 text-gray-600"
-                              }`}
+                        {openMenuId === p.id && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute right-4 mt-2 bg-white border border-gray-200 shadow-lg rounded-lg w-36 text-sm z-20"
                           >
-                            {p.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-
-
-                </table>
-              </div>
+                            <button onClick={() => handleView(p.id)} className="block w-full text-left px-4 py-2 hover:bg-blue-50 text-blue-600">
+                              View Details
+                            </button>
+                            <button onClick={() => handleEdit(p.id)} className="block w-full text-left px-4 py-2 hover:bg-yellow-50 text-yellow-600">
+                              Edit
+                            </button>
+                            <button onClick={() => handleDelete(p.id)} className="block w-full text-left px-4 py-2 hover:bg-red-50 text-red-600">
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
-
-
       </div>
+    </div>
+  );
+}
+
+// Helper Component
+function FormInput({ label, value, onChange, type = "text" }: any) {
+  return (
+    <div className="flex flex-col">
+      <label className="font-semibold text-gray-700 mb-1">{label}</label>
+      <input
+        type={type}
+        className="p-3 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-cyan-500 outline-none transition"
+        value={value}
+        onChange={onChange}
+      />
     </div>
   );
 }

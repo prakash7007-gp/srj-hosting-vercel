@@ -21,6 +21,17 @@ model Patient {
   gender           String?
   nextFollowup     DateTime?
   followups        Followup[]  
+  visits           Visit[]  
+}
+
+model Visit {
+  id             Int       @id @default(autoincrement())
+  patientId      Int
+  visitDate      DateTime  @default(now())
+  nextFollowup   DateTime?
+  fees           Int?
+  notes          String?
+  patient        Patient   @relation(fields: [patientId], references: [id])
 }
 
 model Followup {
