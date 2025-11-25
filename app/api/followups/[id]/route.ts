@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -9,12 +9,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const visit = await prisma.visit.create({
       data: {
         patientId,
-        treatment: body.treatment,
-        doctorNotes: body.doctorNotes,
-        followUpDate: new Date(body.followUpDate),
-        fees: body.fees,
-        paymentMode: body.paymentMode,
-        status: "Pending",
+        // Prisma Visit model fields: nextFollowup, fees, notes
+        nextFollowup: body.nextFollowup ? new Date(body.nextFollowup) : null,
+        fees: body.fees ? Number(body.fees) : null,
+        notes: body.notes || null,
       },
     });
 
