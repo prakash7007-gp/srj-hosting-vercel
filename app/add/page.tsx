@@ -226,7 +226,9 @@ export default function AddPatient() {
 }
 
 // Helper Component
-function FormInput({ label, value, onChange, type = "text" }: any) {
+import React from "react";
+
+function FormInput({ label, value, onChange, type = "text" }: { label: string; value: any; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; }) {
   return (
     <div className="flex flex-col">
       <label className="font-semibold text-gray-700 mb-1">{label}</label>

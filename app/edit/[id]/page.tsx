@@ -72,7 +72,7 @@ export default function EditPatient() {
     <div className="min-h-screen bg-gray-100 p-6 flex justify-center">
       <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-3xl">
         <h1 className="text-3xl font-bold text-cyan-700 mb-6 text-center">
-          Edit Patient Details
+          Edit Patient Detailss
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -121,7 +121,9 @@ export default function EditPatient() {
 }
 
 // Reusable input component
-function Input({ label, type = "text", value, onChange }: any) {
+import React from "react";
+
+function Input({ label, type = "text", value, onChange }: { label: string; type?: string; value: any; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; }) {
   return (
     <div className="flex flex-col">
       <label className="font-semibold text-gray-700 mb-1">{label}</label>
