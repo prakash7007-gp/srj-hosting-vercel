@@ -16,7 +16,7 @@ export default function Sidebar() {
           <UserPlus size={20} /> Add Patient
         </Link>
 
-        <Link href="/followups" className="flex items-center gap-3 p-2 rounded hover:bg-cyan-700">
+        <Link href="/followup" className="flex items-center gap-3 p-2 rounded hover:bg-cyan-700">
           <ListChecks size={20} /> Follow-ups
         </Link>
       </nav>

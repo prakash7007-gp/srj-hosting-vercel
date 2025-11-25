@@ -49,18 +49,6 @@ export default function DashboardPage() {
   const active = patients.filter((p) => p.status === "Active").length;
   const discharged = patients.filter((p) => p.status === "Discharged").length;
 
-  // Count patients created today (local date)
-  const todayCount = patients.filter((p) => {
-    if (!p.createdAt) return false;
-    const d = new Date(p.createdAt);
-    const now = new Date();
-    return (
-      d.getFullYear() === now.getFullYear() &&
-      d.getMonth() === now.getMonth() &&
-      d.getDate() === now.getDate()
-    );
-  }).length;
-
   const filteredPatients = patients.filter((p) =>
     p.name?.toLowerCase().includes(search.toLowerCase()) || p.phone?.includes(search)
   );
@@ -96,6 +84,8 @@ export default function DashboardPage() {
     const res = await fetch(`/api/patients/${editingPatient.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+
+      
       body: JSON.stringify(editingPatient),
     });
     if (res.ok) {
@@ -119,10 +109,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <StatCard label="Total Patients" value={total} icon={Users} />
           <StatCard label="Active Patients" value={active} icon={HeartPulse} />
-          <StatCard label="Today's Patients" value={todayCount} icon={UserPlus} />
+
         </div>
 
         <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-6">

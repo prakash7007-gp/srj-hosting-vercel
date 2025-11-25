@@ -8,30 +8,33 @@ datasource db {
 }
 
 model Patient {
-  id               Int         @id @default(autoincrement())
+  id               Int        @id @default(autoincrement())
   name             String
   phone            String
   age              Int
-  status           String      @default("Active")
-  createdAt        DateTime    @default(now())
+  status           String     @default("Active")
+  createdAt        DateTime   @default(now())
   address          String?
   fees             Int?
   treatmentPurpose String?
   admissionDate    DateTime?
   gender           String?
   nextFollowup     DateTime?
-  followups        Followup[]  
-  visits           Visit[]  
+  adhar            Int?
+  aadhar           String?
+  
+  followups        Followup[]
+  visits           Visit[]
 }
 
 model Visit {
-  id             Int       @id @default(autoincrement())
-  patientId      Int
-  visitDate      DateTime  @default(now())
-  nextFollowup   DateTime?
-  fees           Int?
-  notes          String?
-  patient        Patient   @relation(fields: [patientId], references: [id])
+  id           Int       @id @default(autoincrement())
+  patientId    Int
+  visitDate    DateTime  @default(now())
+  nextFollowup DateTime?
+  fees         Int?
+  notes        String?
+  patient      Patient   @relation(fields: [patientId], references: [id])
 }
 
 model Followup {

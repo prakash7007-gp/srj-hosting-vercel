@@ -14,9 +14,10 @@ export default function AddPatient() {
     treatmentPurpose: "",
     fees: "",
     nextFollowup: "",
+    aadhar: "", // ✅ Added Aadhaar
   });
 
-  const [patients, setPatients] = useState<any[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);   
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const router = useRouter();
 
@@ -29,7 +30,7 @@ export default function AddPatient() {
 
   // Fetch all patients
   const fetchPatients = async () => {
-    const res = await fetch("https://srj-hosting-vercel.onrender.com/api/patients");
+    const res = await fetch("/api/patients");
     const data = await res.json();
     setPatients(data);
   };
@@ -45,7 +46,7 @@ export default function AddPatient() {
       return;
     }
 
-    await fetch("https://srj-hosting-vercel.onrender.com/api/patients", {
+    await fetch("/api/patients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -69,6 +70,7 @@ export default function AddPatient() {
       treatmentPurpose: "",
       fees: "",
       nextFollowup: "",
+      aadhar: "", // ✅ Added Aadhaar
     });
   };
 
@@ -135,7 +137,14 @@ export default function AddPatient() {
             <FormInput label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             <FormInput label="Treatment Purpose" value={form.treatmentPurpose} onChange={(e) => setForm({ ...form, treatmentPurpose: e.target.value })} />
             <FormInput type="number" label="Fees (₹)" value={form.fees} onChange={(e) => setForm({ ...form, fees: e.target.value })} />
+
             <FormInput type="date" label="Next Follow-up" value={form.nextFollowup} onChange={(e) => setForm({ ...form, nextFollowup: e.target.value })} />
+            <FormInput
+              label="Aadhaar Number"
+              value={form.aadhar}
+              onChange={(e) => setForm({ ...form, aadhar: e.target.value })}
+            />
+
           </div>
 
           <button
@@ -147,7 +156,7 @@ export default function AddPatient() {
         </div>
 
         {/* Patient List */}
-        <div className="bg-white border border-gray-300 shadow-xl rounded-xl p-6 mt-12">
+        {/* <div className="bg-white border border-gray-300 shadow-xl rounded-xl p-6 mt-12">
           <h2 className="text-2xl font-bold text-cyan-700 mb-4">Patient Records</h2>
           {patients.length === 0 ? (
             <p className="text-center text-gray-500 py-6">No patient records found.</p>
@@ -162,6 +171,7 @@ export default function AddPatient() {
                     <th className="p-3 text-left">Age</th>
                     <th className="p-3 text-left">Admission</th>
                     <th className="p-3 text-left">Next Follow-Up</th>
+                    <th className="p-3 text-left">Aadhaar</th>
                     <th className="p-3 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -174,6 +184,7 @@ export default function AddPatient() {
                       <td className="p-3 text-gray-700">{p.age}</td>
                       <td className="p-3 text-amber-600">{p.admissionDate?.slice(0, 10) || "-"}</td>
                       <td className="p-3 text-red-600">{p.nextFollowup?.slice(0, 10) || "Not Scheduled"}</td>
+                      <td className="p-3 text-gray-700">{p.aadhar || "-"}</td>
                       <td className="p-3 text-center relative">
                         <button
                           onClick={(e) => {
@@ -208,7 +219,7 @@ export default function AddPatient() {
               </table>
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

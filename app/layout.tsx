@@ -31,7 +31,7 @@ export default function RootLayout({
       <div className="w-full bg-cyan-700 py-8 shadow-md mb-8">
         <div className="max-w-6xl mx-auto px-6">
           <h1 className="text-4xl font-bold text-white flex items-center gap-3">
-            PatientCare Portal SRJ
+       Srj Bone Setting Centre
           </h1>
           <p className="mt-1">Manage hospital patient records efficiently</p>
         </div>
