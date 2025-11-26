@@ -32,7 +32,7 @@ export default function DashboardPage() {
       console.error("fetchPatients error:", err);
     }
   };
-
+     
   useEffect(() => {
     fetchPatients();
     const onPatientsUpdated = () => fetchPatients();
@@ -41,7 +41,7 @@ export default function DashboardPage() {
     window.addEventListener("focus", onFocus);
     return () => {
       window.removeEventListener("patientsUpdated", onPatientsUpdated as EventListener);
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("focus", onFocus); 
     };
   }, []);
 
@@ -119,7 +119,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
           <StatCard label="Total Patients" value={total} icon={Users} />
           <StatCard label="Active Patients" value={active} icon={HeartPulse} />
           <StatCard label="Today's Patients" value={todayCount} icon={UserPlus} />
@@ -143,11 +143,12 @@ export default function DashboardPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or phone..."
-              className="w-full md:w-1/3 px-4 py-2 border border-gray-300 rounded-md"
+              className="w-full md:w-1/3 px-4 py-2 border border-gray-700 text-gray-700 rounded-md"
             />
           </div>
 
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
             <div className="max-h-96 overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="bg-cyan-600 text-white sticky top-0">
@@ -158,7 +159,7 @@ export default function DashboardPage() {
                     <th className="p-4 text-left font-bold">Age</th>
                     <th className="p-4 text-left font-bold">Admission</th>
                     <th className="p-4 text-left font-bold">Adhar Number</th>
-                    <th className="p-4 text-center font-bold">Actions</th>
+                    <th className="p-4 text-left font-bold">Actions</th>
                   </tr>
                 </thead>
 
@@ -177,16 +178,16 @@ export default function DashboardPage() {
                       <td className="p-4 text-gray-600">{p.phone}</td>
                       <td className="p-4 text-gray-600">{p.gender}</td>
                       <td className="p-4 text-gray-600">{p.age}</td>
-                      <td className="p-4">{p.admissionDate ? p.admissionDate.slice(0, 10) : "-"}</td>
+                      <td className="p-4 text-gray-600">{p.admissionDate ? p.admissionDate.slice(0, 10) : "-"}</td>
 
 
 
-                      <td className="p-4 text-gray-600">{p.aadhar}</td>
+                      <td className="p-2 text-gray-600">{p.aadhar}</td>
                       {/* ✅ Edit/Delete Buttons Added */}
-                      <td className="p-4 flex items-center justify-center gap-3">
+                      <td className="p-4 flex gap-3">
                         <button
                           onClick={() => setEditingPatient(p)}
-                          className="text-cyan-600 hover:text-cyan-800"
+                          className="text-cyan-600 hover:text-cyan-800 p-2 rounded"
                           title="Edit"
                         >
                           <Edit size={18} />
@@ -194,7 +195,7 @@ export default function DashboardPage() {
 
                         <button
                           onClick={() => handleDelete(p.id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-red-700 hover:text-red-800 p-2 rounded"
                           title="Delete"
                         >
                           <Trash size={18} />
@@ -206,14 +207,37 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {filteredPatients.map((p) => (
+              <div key={p.id} className="bg-white border rounded-lg p-4 shadow-sm">
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <div className="text-lg font-bold text-green-900 capitalize">{p.name}</div>
+                    <div className="text-sm text-gray-600">{p.phone} • {p.gender} • {p.age}</div>
+                    <div className="text-sm text-gray-600 mt-2">Admission: {p.admissionDate ? p.admissionDate.slice(0,10) : '-'}</div>
+                    <div className="text-sm text-gray-600">Aadhar: {p.aadhar}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <Link href={`/patient/${p.id}`} className="text-cyan-600 underline text-sm">View</Link>
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingPatient(p)} className="px-3 py-1 bg-cyan-100 text-cyan-700 rounded">Edit</button>
+                      <button onClick={() => handleDelete(p.id)} className="px-3 py-1 bg-red-100 text-red-700 rounded">Delete</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* ✅ Edit Modal */}
       {editingPatient && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+        <div className="fixed inset-0 text-gray-700 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
           <div className="bg-white rounded-2xl p-8 shadow-2xl shadow-cyan-900/30 w-full max-w-lg overflow-y-auto max-h-[90vh] transform transition-all duration-300 scale-100 hover:scale-[1.01]">
-            <h2 className="text-2xl font-bold mb-4 text-cyan-700 text-center">
+            <h2 className="text-2xl font-bold mb-4 text-gray-700 text-center">
               ✏️ Edit Patient Details
             </h2>
 
@@ -315,7 +339,8 @@ export default function DashboardPage() {
             >
               <option>Active</option>
               <option>Inactive</option>
-            </select>
+            </select>    
+            
 
             {/* Buttons */}
             <div className="flex justify-end gap-3 mt-4">

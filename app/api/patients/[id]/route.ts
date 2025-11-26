@@ -23,9 +23,17 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 // 🟡 PUT — Update patient by ID
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
-  const data = await req.json();
+  let data = await req.json();
 
   try {
+    // Convert date strings to DateTime objects for Prisma
+    if (data.nextFollowup && typeof data.nextFollowup === "string") {
+      data.nextFollowup = new Date(data.nextFollowup);
+    }
+    if (data.admissionDate && typeof data.admissionDate === "string") {
+      data.admissionDate = new Date(data.admissionDate);
+    }
+
     const updated = await prisma.patient.update({
       where: { id: Number(id) },
       data,

@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const patientId = url.searchParams.get("patientId");
+
+    const where = patientId ? { patientId: Number(patientId) } : {};
+
     const followups = await prisma.followup.findMany({
+      where,
       orderBy: { date: "asc" },
       include: {
         patient: {
